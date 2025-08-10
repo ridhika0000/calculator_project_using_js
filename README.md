@@ -28,9 +28,9 @@ You can use:
   - `Enter` or `=` to calculate
   - `Backspace` to delete last character
   - `Esc` to clear all
+  - 
+<img width="1920" height="1020" alt="image" src="https://github.com/user-attachments/assets/1f7d7033-8968-4339-b718-c8b8ddff13ac" />
 
-## 📸 Screenshot
-*(Add a screenshot of your calculator UI here if you want)*
 
 ## 📜 License
 This project is released under the **MIT License**.  
