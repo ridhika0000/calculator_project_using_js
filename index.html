@@ -1,0 +1,235 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Simple Calculator</title>
+  <style>
+  
+    :root {
+      --bg: #f3f4f6;
+      --panel: #ffffff;
+      --accent: #2563eb;
+      --muted: #6b7280;
+      --shadow: 0 6px 18px rgba(37,99,235,0.08);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+
+    body {
+      background: linear-gradient(180deg, #eef2ff 0%, var(--bg) 100%);
+      display: grid;
+      place-items: center;
+      height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .calc {
+      width: 320px;
+      border-radius: 16px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .display {
+      background: linear-gradient(90deg,#ffffff,#f8fafc);
+      padding: 18px;
+      text-align: right;
+      font-size: 28px;
+      letter-spacing: 0.6px;
+      color: #111827;
+    }
+
+    .sub-display {
+      color: var(--muted);
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      padding: 16px;
+      background: transparent;
+    }
+
+    button {
+      appearance: none;
+      border: none;
+      padding: 16px 12px;
+      border-radius: 12px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: transform .06s ease, box-shadow .06s ease;
+      box-shadow: 0 4px 10px rgba(15,23,42,0.04);
+      background: linear-gradient(180deg,#fbfdff,#f8fbff);
+    }
+    button:active { transform: translateY(1px) scale(.998); }
+
+    .op { background: linear-gradient(180deg,#eef2ff,#e6f0ff); color: var(--accent); font-weight: 600; }
+    .big { grid-column: span 2; }
+    .danger { background: linear-gradient(180deg,#ffefef,#fff2f2); color: #b91c1c; }
+
+   
+    @media (max-width:360px) {
+      .calc { width: 94vw; }
+      .display { font-size: 24px; padding: 14px; }
+      button { padding: 12px 8px; font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="calc" role="application" aria-label="Simple calculator">
+    <div class="display" id="display">
+      <div class="sub-display" id="sub">0</div>
+      <div id="main">0</div>
+    </div>
+
+    <div class="buttons">
+      <button class="danger" data-action="clear">C</button>
+      <button data-action="back">⌫</button>
+      <button data-value="%" class="op">%</button>
+      <button data-value="/" class="op">÷</button>
+
+      <button data-value="7">7</button>
+      <button data-value="8">8</button>
+      <button data-value="9">9</button>
+      <button data-value="*" class="op">×</button>
+
+      <button data-value="4">4</button>
+      <button data-value="5">5</button>
+      <button data-value="6">6</button>
+      <button data-value="-" class="op">−</button>
+
+      <button data-value="1">1</button>
+      <button data-value="2">2</button>
+      <button data-value="3">3</button>
+      <button data-value="+" class="op">+</button>
+
+      <button data-value="0" class="big">0</button>
+      <button data-value="." class="op">.</button>
+      <button data-action="equals" class="op">=</button>
+    </div>
+  </div>
+
+  <script>
+   
+    (function () {
+      const mainEl = document.getElementById('main');
+      const subEl  = document.getElementById('sub');
+      const buttons = document.querySelector('.buttons');
+
+      let expr = '';     
+      let pretty = '';   
+
+     
+      function render() {
+        mainEl.textContent = expr === '' ? '0' : expr;
+        subEl.textContent = pretty === '' ? '0' : pretty;
+      }
+
+      function uiToJs(s) {
+        return s.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
+      }
+
+    
+      buttons.addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+
+        const val = btn.getAttribute('data-value');
+        const action = btn.getAttribute('data-action');
+
+        if (action === 'clear') {
+          expr = '';
+          pretty = '';
+          render();
+          return;
+        }
+
+        if (action === 'back') {
+        
+          expr = expr.slice(0, -1);
+          pretty = pretty.slice(0, -1);
+          render();
+          return;
+        }
+
+        if (action === 'equals') {
+          calculate();
+          return;
+        }
+
+       
+        if (val) {
+          
+          if (val === '.') {
+           
+            const lastNum = expr.split(/[\+\-\*\/%]/).pop() || '';
+            if (lastNum.includes('.')) return; 
+          }
+
+          const prettyVal = val === '*' ? '×' : (val === '/' ? '÷' : (val === '-' ? '−' : val));
+          expr += val;
+          pretty += prettyVal;
+          render();
+        }
+      });
+
+      
+      window.addEventListener('keydown', (e) => {
+        if (e.key >= '0' && e.key <= '9') {
+          expr += e.key; pretty += e.key; render(); return;
+        }
+        if (e.key === '.') { 
+          const lastNum = expr.split(/[\+\-\*\/%]/).pop() || '';
+          if (!lastNum.includes('.')) { expr += '.'; pretty += '.'; render(); }
+          return;
+        }
+        if (e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/' || e.key === '%') {
+          const prettySym = e.key === '*' ? '×' : (e.key === '/' ? '÷' : (e.key === '-' ? '−' : e.key));
+          expr += e.key; pretty += prettySym; render(); return;
+        }
+        if (e.key === 'Enter' || e.key === '=') { e.preventDefault(); calculate(); return; }
+        if (e.key === 'Backspace') { expr = expr.slice(0,-1); pretty = pretty.slice(0,-1); render(); return; }
+        if (e.key === 'Escape') { expr = ''; pretty = ''; render(); return; }
+      });
+
+     
+      function calculate() {
+        if (!expr) return;
+      
+        const jsExpr = uiToJs(expr);
+
+       
+        if (!/^[0-9+\-*/%.() \t]+$/.test(jsExpr)) {
+          mainEl.textContent = 'Error';
+          return;
+        }
+
+        try {
+        
+          let result = eval(jsExpr);
+
+       
+          if (typeof result === 'number' && !Number.isInteger(result)) {
+            result = parseFloat(result.toFixed(10)); 
+          }
+
+          expr = String(result);
+          pretty = expr; 
+          render();
+        } catch (err) {
+          mainEl.textContent = 'Error';
+        }
+      }
+
+     
+      render();
+    })();
+  </script>
+</body>
+</html>
